@@ -16,7 +16,7 @@ const getWalletBalance = async (req,res)  => {
         console.log(response)
         const dataRespone = {
             address: req.body.address,
-            balance: response.jsonResponse.balance
+            balance: response.jsonResponse[0].balance
         }
         res.status(200).json({data: dataRespone});
     }
