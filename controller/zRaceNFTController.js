@@ -11,7 +11,7 @@ const { Typed } = require('ethers');
 const Moralis = require ('moralis').default;
 
 const contractInstance = new ethers.Contract(contractAddress, abi, signer);
-
+const contractListener = new ethers.Contract(contractAddress, abi, provider);
 const getBalanceNFTOfAccount = async (req,res) =>{
     try{
         const account = req.body.account;
@@ -70,5 +70,10 @@ const getAllNFTByAccount = async(req,res)=>{
         console.error(e);
         res.status(500).json({data: null,error: "Some thing went wrong"});
     }
+}
+const onNFTTransferListener = async() =>{
+    contractListener.addListener("TransferSingle", (operator, from, to, id, amount, event) =>{
+        console.log(operator, from, to, id, amount, event);
+    });
 }
 module.exports = {getBalanceNFTOfAccount, postBuyNFTByZcoinToken, getAllNFTByAccount}
