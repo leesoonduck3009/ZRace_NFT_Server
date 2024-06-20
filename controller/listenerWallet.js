@@ -13,6 +13,7 @@ const contractCoinInstance = new ethers.Contract( COIN_CONTRACT_ADDRESS, abiCoin
 const contractCoinUserInstance = new ethers.Contract( COIN_CONTRACT_ADDRESS,abiCoin.abi,  signer);
 const contractNFTInstance = new ethers.Contract( NFT_CONTRACT_ADDRESS, abiNFT.abi,signer);
 const {doc, setDoc,addDoc , getDocs, collection, query,where,updateDoc} = require('firebase/firestore')
+const {admin, firestore} = require("../config/firebaseAdminConfig");
 const onContractTransferStrideUpCoinListener = () => {
     try {
         console.log("Run contract transferListener")
@@ -21,24 +22,26 @@ const onContractTransferStrideUpCoinListener = () => {
             console.log("to: ", ethers.getAddress(to));
             console.log("amount: ", ethers.formatEther(amount));
             const walletRef = collection(db, 'wallet');
-            const querySnapshotFrom = await getDocs(query(walletRef,where("walletAddress","==",ethers.getAddress(from))));
-            const newBalanceOfFromAccount = ethers.formatEther(await contractCoinUserInstance.balanceOf(from));
-            const newBalanceOfToAccount = ethers.formatEther(await contractCoinUserInstance.balanceOf(to));
+            const addressTo = ethers.getAddress(to).toLowerCase();
+            const newBalanceOfFromAccount = ethers.formatEther(await contractCoinUserInstance.balanceOf(ethers.getAddress(from)));
+            const newBalanceOfToAccount = ethers.formatEther(await contractCoinUserInstance.balanceOf(ethers.getAddress(to)));
+            console.log(newBalanceOfToAccount   )
+            const querySnapshotFrom = await getDocs(query(walletRef,where("publicAddress","==",ethers.getAddress(from))));
             querySnapshotFrom.forEach(async (document) => {
                 const idDoc = document.id;
                 const walletRefFrom = doc(db,"wallet",idDoc);
                 const data = document.data();
                 await updateDoc(walletRefFrom, {
-                    balance: parseInt(newBalanceOfFromAccount,10)
+                    zCoin: parseFloat(newBalanceOfFromAccount,10)
                 });
             });
-            const querySnapshotTo = await getDocs(query(walletRef,where("walletAddress","==",ethers.getAddress(to))));
+            const querySnapshotTo = await getDocs(query(walletRef,where("publicAddress","==",addressTo)));
             querySnapshotTo.forEach(async (document) => {
                 const idDoc = document.id;
                 const walletRefTo = doc(db,"wallet",idDoc);
                 const data = document.data();
                 await updateDoc(walletRefTo, {
-                    balance: parseInt(newBalanceOfToAccount,10)
+                    zCoin: parseFloat(newBalanceOfToAccount,10)
                 });
             });
         });
@@ -63,4 +66,20 @@ const onContractTransferStrideUpNFTListener = async()=>{
 
     }
 }
+// const onContractTransfer = async()=>{
+//     contractCoinInstance.addListener('Transfer', async(from, to, amount, event) => {
+//         const addressFrom = ethers.getAddress(from)
+//         const addressTo =  ethers.getAddress(to);
+//         console.log("from: ", addressFrom);
+//         console.log("to: ", addressTo);
+//         console.log("amount: ", ethers.formatEther(amount));
+//         const responeFrom = await firestore.collection("wallet").where("userId", "==", addressFrom ).get();
+//         if(responeFrom.docs.length!==0)
+//         {
+//             const data = {"zCoin": }
+//             await firestore.collection("wallet").doc(responeFrom.docs[0].id).set()
+//         }
+//     });
+    
+// }
 module.exports = {onContractTransferStrideUpCoinListener};

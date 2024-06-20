@@ -5,6 +5,7 @@ const {db} = require('../config/firebaseConfig')
 const {encrypt,decrypt} = require('../config/DataHash');
 require('dotenv').config();
 const ethers = require('ethers');
+const admin = require("../config/firebaseAdminConfig");
 const CHAIN = process.env.CHAIN;
 const COIN_CONTRACT_ADDRESS = process.env.COIN_CONTRACT_ADDRESS;
 const getWalletBalance = async (req,res)  => {
@@ -37,7 +38,7 @@ const createWallet = async (req, res) => {
     try{
         const privateKey = encrypt(req.body.privateKey);
         const walletAddress = req.body.walletAddress;
-        const accountId = req.body.accountId;
+        const userId = req.body.userId;
         const response = await Moralis.EvmApi.token.getWalletTokenBalances({
             "chain": "0x61",
             "tokenAddresses": [
@@ -48,8 +49,7 @@ const createWallet = async (req, res) => {
         const balance = response.jsonResponse[0].balance;
         const data = {
             privateKey: privateKey,
-            walletAddress: walletAddress,
-            accountId: accountId,
+            userId: userId,
             balance: parseInt(ethers.formatEther(balance),10),
         }
         const fbRespone = await addDoc(collection(db,'wallet'), data);
@@ -63,9 +63,9 @@ const createWallet = async (req, res) => {
 const getWalletWithId = async(req,res)=>{
     try{
         const walletAddress = req.body.walletAddress;
-        const accountId = req.body.accountId;
+        const userId = req.body.userId;
         const querySnapshot = await getDocs(query(collection(db,'wallet'),where("walletAddress","==",walletAddress)
-    ,where("accountId","==",accountId)));
+    ,where("userId","==",userId)));
     const data = querySnapshot.docs[0].data();
     const respone = {
         address: data.walletAddress,
