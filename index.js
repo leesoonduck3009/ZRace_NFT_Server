@@ -32,7 +32,6 @@ const login = async()=>{
     console.error('Error: ', errorCode, errorMessage);
   });
 }
- login();
 
 zRaceController.onContractTransferStrideUpCoinListener();
 const startServer = async () => {
